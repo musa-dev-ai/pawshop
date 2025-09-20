@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>PawShop — Premium Dog Companions</title>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- AOS -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet"/>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<!-- Feather icons -->
+<script src="https://unpkg.com/feather-icons"></script>
+<!-- Dancing Script -->
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --amber-500:#f59e0b;
+  --amber-600:#d97706;
+  --bg-glass: rgba(255,255,255,0.55);
+}
+html, body { height:100%; }
+html { scroll-behavior: smooth; }
+
+/* Hero background */
+.hero-bg {
+  background-color: #fefcfb;
+  background-image: linear-gradient(180deg, rgba(17,24,39,0.15), rgba(17,24,39,0.35)), url("austin-kirk-QZenflkkwt0-unsplash.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-attachment: fixed;
+  min-height: 60vh;
+}
+@media (max-width: 768px) {
+  .hero-bg {
+    background-attachment: scroll;
+  }
+}
+
+/* Loader */
+.loader-overlay {
+  position: fixed; inset:0; display:flex; align-items:center; justify-content:center;
+  background: rgba(255,255,255,0.97); z-index:9999; transition:opacity .45s ease;
+}
+.loader-spinner {
+  width:60px; height:60px; border-radius:50%;
+  border:6px solid #f3f3f3; border-top-color:var(--amber-600);
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Navbar */
+.nav-glass {
+  background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06));
+  backdrop-filter: blur(6px) saturate(120%);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+}
+.nav-solid { background: white; box-shadow: 0 8px 30px rgba(2,6,23,0.08); }
+
+/* Logo */
+.logo-script {
+  font-family: 'Dancing Script', cursive;
+  font-weight:700;
+  background: linear-gradient(90deg, var(--amber-500), var(--amber-600));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  text-shadow: 0 4px 12px rgba(215, 119, 6, 0.14);
+  font-size: 1.6rem;
+}
+
+/* Nav link hover */
+.nav-link {
+  position:relative;
+  padding: .4rem .35rem;
+  display:inline-flex; align-items:center; gap:.5rem;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -8px; left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 60%; height: 3px; border-radius: 999px;
+  background: linear-gradient(90deg,rgba(245,158,11,0.95), rgba(217,119,6,0.95));
+  transition: transform .32s cubic-bezier(.2,.9,.2,1);
+  transform-origin: center;
+}
+.nav-link:hover::after, .nav-link.active::after {
+  transform: translateX(-50%) scaleX(1);
+}
+
+/* 3D tilt cards */
+.tilt-card { transform-style: preserve-3d; perspective: 1100px; transition: transform .25s, box-shadow .25s; will-change: transform; }
+.tilt-inner { transform-origin: center center; transition: transform .25s; will-change: transform; }
+.card-shadow { box-shadow: 0 8px 30px rgba(2,6,23,0.06); }
+.card-shadow-hover { box-shadow: 0 30px 60px rgba(2,6,23,0.12); }
+
+/* Modal */
+.modal-bg { background: rgba(2,6,23,0.6); }
+.modal-card { transform: translateY(10px) scale(.98); opacity:0; transition: transform .28s, opacity .28s; }
+.modal-open .modal-card { transform: translateY(0) scale(1); opacity:1; }
+
+/* FAQ */
+.faq-content { max-height:0; overflow:hidden; transition: max-height .38s, padding .28s; }
+.faq-open { padding-top:.5rem; }
+
+/* Utilities */
+.glow-border { box-shadow: 0 6px 30px rgba(245,158,11,0.06); }
+.icon-circle { width:56px; height:56px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); }
+
+/* Paw walking loader */
+.paw-walk { display:flex; justify-content:center; gap:.8rem; font-size:3rem; overflow:hidden; }
+.paw-walk span { position: relative; opacity:0; display:inline-block; transform: translateX(-20px) scale(.8); animation: paw-walk 1.6s infinite; color: var(--amber-600); }
+.paw-walk span:nth-child(1) { animation-delay:0s; }
+.paw-walk span:nth-child(2) { animation-delay:0.25s; }
+.paw-walk span:nth-child(3) { animation-delay:0.5s; }
+.paw-walk span:nth-child(4) { animation-delay:0.75s; }
+.paw-walk span:nth-child(odd) { --step-y:-10px; --tilt:-12deg; }
+.paw-walk span:nth-child(even) { --step-y:10px; --tilt:12deg; }
+.paw-walk span::after {
+  content:"🐾"; position:absolute; left:0; top:0; opacity:0;
+  transform: translateX(0) translateY(var(--step-y)) scale(.9) rotate(var(--tilt));
+  animation: paw-trail 2.2s infinite; animation-delay: inherit; color: var(--amber-600);
+}
+@keyframes paw-walk { 0% {opacity:0; transform: translateX(-20px) scale(.8) rotate(0deg);} 30% {opacity:1; transform: translateX(0) translateY(var(--step-y)) scale(1) rotate(var(--tilt));} 70% {opacity:1; transform: translateX(10px) translateY(var(--step-y)) scale(1.1) rotate(var(--tilt));} 100% {opacity:0; transform: translateX(20px) translateY(var(--step-y)) scale(.8) rotate(var(--tilt));} }
+@keyframes paw-trail { 0%,40% {opacity:0;} 50% {opacity:.5;} 100% {opacity:0; transform: translateX(40px) translateY(var(--step-y)) scale(.85) rotate(var(--tilt));} }
+
+/* Responsive tweaks */
+@media (max-width: 1024px) {
+  .hero-bg { min-height: 50vh; }
+  .hero-bg h1 { font-size: 3rem; }
+  .hero-bg p { font-size:1rem; }
+}
+@media (max-width: 640px) {
+  .hero-bg h1 { font-size:2.2rem; }
+  .hero-bg p { font-size:.875rem; }
+}
+</style>
+<link href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐾</text></svg>" rel="icon"/>
+</head>
+<body class="antialiased text-gray-800 bg-gradient-to-b from-gray-50 to-white">
+
+<!-- Loader -->
+<div class="loader-overlay" id="loader">
+  <div class="text-center">
+    <div class="paw-walk mx-auto mb-4" aria-hidden="true">
+      <span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span>
+    </div>
+    <div class="text-lg font-semibold text-gray-700">Finding Your Puppy...</div>
+  </div>
+</div>
+
+<!-- NAV (glass) -->
+<header class="fixed w-full top-4 left-0 z-50" id="header">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 nav-glass rounded-xl backdrop-blur-md" id="navWrap">
+  <div class="flex items-center justify-between py-3">
+    <a class="flex items-center gap-3" href="index.html"><span class="logo-script">PawShop 🐾</span></a>
+    <nav class="hidden md:flex items-center gap-6">
+      <a class="nav-link nav-item flex items-center gap-2 text-gray-800 hover:text-amber-600" href="#home"><i class="w-5 h-5" data-feather="home"></i><span>Home</span></a>
+      <a class="nav-link nav-item flex items-center gap-2 text-gray-800 hover:text-amber-600" href="shop.html"><i class="w-5 h-5" data-feather="shopping-bag"></i><span>Shop Dogs</span></a>
+      <a class="nav-link nav-item flex items-center gap-2 text-gray-800 hover:text-amber-600" href="#contact"><i class="w-5 h-5" data-feather="mail"></i><span>Contact</span></a>
+    </nav>
+    <div class="md:hidden">
+      <button aria-expanded="false" aria-label="Open menu" class="p-2 rounded-md bg-white/60 backdrop-blur-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400" id="mobileToggle">
+        <i class="w-6 h-6 text-gray-800" data-feather="menu"></i>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Mobile overlay -->
+<div class="fixed inset-0 z-50 hidden" id="mobileOverlay">
+  <div class="absolute inset-0 bg-black/45 backdrop-blur-sm"></div>
+  <div class="relative h-full flex items-center justify-center">
+    <div class="bg-white rounded-2xl w-11/12 max-w-sm mx-auto p-8 transform transition-all scale-95 opacity-0" id="mobilePanel" style="backdrop-filter: blur(6px);">
+      <div class="flex justify-between items-center mb-6">
+        <div class="logo-script text-lg">PawShop 🐾</div>
+        <button class="p-2 rounded-md bg-gray-100" id="mobileClose"><i data-feather="x"></i></button>
+      </div>
+      <div class="space-y-4">
+        <a class="flex items-center gap-3 text-lg hover:text-amber-600" href="#home"><i data-feather="home"></i> Home</a>
+        <a class="flex items-center gap-3 text-lg hover:text-amber-600" href="shop.html"><i data-feather="shopping-bag"></i> Shop Dogs</a>
+        <a class="flex items-center gap-3 text-lg hover:text-amber-600" href="#contact"><i data-feather="mail"></i> Contact</a>
+      </div>
+    </div>
+  </div>
+</div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="pt-28">
+<!-- HERO Section -->
+<section class="hero-bg relative py-28 md:py-36" id="home">
+<div class="max-w-6xl mx-auto px-4 text-center" data-aos="zoom-in">
+<h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white drop-shadow-lg">Find Your Perfect Canine Companion</h1>
+<p class="mt-4 text-lg md:text-xl text-amber-100/90 max-w-3xl mx-auto">Premium bred puppies with health guarantees and lifetime support — ethically sourced from trusted breeders nationwide.</p>
+<div class="mt-8 flex flex-wrap items-center justify-center gap-4">
+<a class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold shadow-2xl hover:-translate-y-1 transition" href="shop.html"> <i class="w-5 h-5" data-feather="search"></i> Browse Puppies</a>
+<a class="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-white/30 text-white hover:bg-white/6 transition" href="#contact">Contact Us</a>
+</div>
+</div>
+<!-- floating card -->
+<div class="absolute right-8 bottom-6 hidden lg:block transform -translate-y-6">
+    <div class="bg-white/90 rounded-2xl p-4 shadow-2xl w-full sm:w-64">
+        <img alt="Maltipoo puppy holding flower" class="w-full h-40 object-cover rounded-xl mb-3" src="dogg.jpg"/>
+        <div class="text-sm font-semibold">Featured Now</div>
+        <div class="text-xs text-gray-600">New litter available this week</div>
+    </div>
+</div>
+</section>
+
+<!-- Breadcrumbs -->
+<nav aria-label="Breadcrumb" class="bg-gray-50 py-3">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<ol class="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+  <li class="flex items-center gap-2 flex-shrink-0"><i class="w-4 h-4" data-feather="home"></i><a class="hover:text-amber-600" href="#home">Home</a></li>
+  <li class="text-gray-300 flex-shrink-0">/</li>
+  <li class="flex-shrink-0"><a class="hover:text-amber-600" href="shop.html">Shop Dogs</a></li>
+  <li class="text-gray-300 flex-shrink-0">/</li>
+  <li class="font-semibold text-gray-900 flex-shrink-0">Available Puppies</li>
+</ol>
+
+</div>
+</nav>
+
+<!-- Featured cards (3D tilt) -->
+<section class="py-14 bg-transparent">
+<div class="max-w-7xl mx-auto px-4">
+<h2 class="text-3xl font-bold text-center mb-10" data-aos="fade-up">Featured Puppies</h2>
+<div class="grid gap-8 md:grid-cols-3">
+<!-- Card A -->
+<article class="tilt-card card-shadow rounded-2xl bg-white overflow-hidden border border-gray-100" data-aos="fade-up" data-dog='{"name":"Golden Retriever","age":"8 weeks","price":"$1,200","location":"California","description":"Friendly, playful, and loyal — perfect family companion.","image":"http://static.photos/dogs/640x360/1"}'>
+<div class="tilt-inner">
+<div class="relative">
+<img alt="Golden" class="w-full h-64 object-cover" src="http://static.photos/dogs/640x360/1"/>
+<span class="absolute left-4 top-4 px-3 py-1 rounded-full text-xs font-semibold text-white bg-amber-600/95 shadow">Popular</span>
+</div>
+<div class="p-6">
+<h3 class="text-xl font-bold mb-1">Golden Retriever</h3>
+<div class="flex items-center justify-between text-sm text-gray-600 mb-3">
+<span>8 weeks</span>
+<span class="font-semibold text-amber-600">$1,200</span>
+</div>
+<p class="text-gray-600 mb-4 line-clamp-3">Friendly, playful, and loyal — perfect for families and active owners.</p>
+<div class="flex gap-3">
+<button class="view-details flex-1 rounded-lg py-2 px-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold shadow hover:translate-y-[-2px] transition">View Details</button>
+<button class="rounded-lg py-2 px-4 border border-gray-200 text-gray-700">Inquire</button>
+</div>
+</div>
+</div>
+</article>
+<!-- Card B -->
+<article class="tilt-card card-shadow rounded-2xl bg-white overflow-hidden border border-gray-100" data-aos="fade-up" data-aos-delay="80" data-dog='{"name":"French Bulldog","age":"10 weeks","price":"$2,500","location":"Texas","description":"Compact, charming, and great for city apartments.","image":"http://static.photos/dogs/640x360/2"}'>
+<div class="tilt-inner">
+<div class="relative">
+<img alt="French" class="w-full h-64 object-cover" src="http://static.photos/dogs/640x360/2"/>
+<span class="absolute left-4 top-4 px-3 py-1 rounded-full text-xs font-semibold text-white bg-green-600/95 shadow">New</span>
+</div>
+<div class="p-6">
+<h3 class="text-xl font-bold mb-1">French Bulldog</h3>
+<div class="flex items-center justify-between text-sm text-gray-600 mb-3">
+<span>10 weeks</span>
+<span class="font-semibold text-amber-600">$2,500</span>
+</div>
+<p class="text-gray-600 mb-4 line-clamp-3">Compact, charming, and great for city apartments — loving and calm temperament.</p>
+<div class="flex gap-3">
+<button class="view-details flex-1 rounded-lg py-2 px-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold shadow">View Details</button>
+<button class="rounded-lg py-2 px-4 border border-gray-200 text-gray-700">Inquire</button>
+</div>
+</div>
+</div>
+</article>
+<!-- Card C -->
+<article class="tilt-card card-shadow rounded-2xl bg-white overflow-hidden border border-gray-100" data-aos="fade-up" data-aos-delay="160" data-dog='{"name":"Labrador Retriever","age":"9 weeks","price":"$1,000","location":"Ohio","description":"Energetic, loyal, and great with kids.","image":"http://static.photos/dogs/640x360/3"}'>
+<div class="tilt-inner">
+<div class="relative">
+<img alt="Labrador" class="w-full h-64 object-cover" src="http://static.photos/dogs/640x360/3"/>
+<span class="absolute left-4 top-4 px-3 py-1 rounded-full text-xs font-semibold text-white bg-blue-600/90 shadow">Popular</span>
+</div>
+<div class="p-6">
+<h3 class="text-xl font-bold mb-1">Labrador Retriever</h3>
+<div class="flex items-center justify-between text-sm text-gray-600 mb-3">
+<span>9 weeks</span>
+<span class="font-semibold text-amber-600">$1,000</span>
+</div>
+<p class="text-gray-600 mb-4 line-clamp-3">Energetic and loyal — wonderful family companion and great with children.</p>
+<div class="flex gap-3">
+<button class="view-details flex-1 rounded-lg py-2 px-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold shadow">View Details</button>
+<button class="rounded-lg py-2 px-4 border border-gray-200 text-gray-700">Inquire</button>
+</div>
+</div>
+</div>
+</article>
+</div>
+</div>
+</section>
+<!-- Trust counters -->
+<section class="py-12">
+<div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="bg-amber-600 text-white p-6 rounded-2xl text-center shadow-lg" data-aos="fade-up">
+<div class="icon-circle mx-auto mb-3"><i class="w-5 h-5 text-white" data-feather="heart"></i></div>
+<div class="text-4xl font-extrabold counter" data-count="500">0</div>
+<div class="mt-2">Puppies Placed</div>
+</div>
+<div class="bg-white p-6 rounded-2xl text-center shadow-lg" data-aos="fade-up" data-aos-delay="80">
+<div class="icon-circle mx-auto mb-3"><i class="w-5 h-5 text-amber-600" data-feather="calendar"></i></div>
+<div class="text-4xl font-extrabold counter" data-count="10">0</div>
+<div class="mt-2">Years Breeding</div>
+</div>
+<div class="bg-white p-6 rounded-2xl text-center shadow-lg" data-aos="fade-up" data-aos-delay="160">
+<div class="icon-circle mx-auto mb-3"><i class="w-5 h-5 text-amber-600" data-feather="star"></i></div>
+<div class="text-4xl font-extrabold counter" data-count="300">0</div>
+<div class="mt-2">5-Star Reviews</div>
+</div>
+<div class="bg-white p-6 rounded-2xl text-center shadow-lg" data-aos="fade-up" data-aos-delay="240">
+<div class="icon-circle mx-auto mb-3"><i class="w-5 h-5 text-amber-600" data-feather="truck"></i></div>
+<div class="text-4xl font-extrabold">50+</div>
+<div class="mt-2">States Delivered</div>
+</div>
+</div>
+</section>
+<!-- FAQ (fixed closed by default) -->
+<section class="py-16 bg-white">
+<div class="max-w-4xl mx-auto px-4">
+<h2 class="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+<div class="space-y-4">
+<!-- item 1 -->
+<div class="border rounded-2xl overflow-hidden" data-aos="fade-up">
+<button aria-expanded="false" class="faq-toggle w-full p-4 flex items-center justify-between text-left">
+<span class="font-semibold">What’s included with my puppy?</span>
+<span aria-hidden="true" class="faq-icon"></span>
+</button>
+<div class="faq-content px-4 pb-4 text-gray-600">
+<p>Each puppy includes a 2-year health guarantee, vaccination records, microchip registration assistance, and a starter kit (sample food, toy, and care guide).</p>
+</div>
+</div>
+<!-- item 2 -->
+<div class="border rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="80">
+<button aria-expanded="false" class="faq-toggle w-full p-4 flex items-center justify-between text-left">
+<span class="font-semibold">Do you ship nationwide?</span>
+<span aria-hidden="true" class="faq-icon"></span>
+</button>
+<div class="faq-content px-4 pb-4 text-gray-600">
+<p>Yes — we partner with vetted pet transport services offering climate-controlled travel and a live flight nanny option for long-distance moves.</p>
+</div>
+</div>
+<!-- item 3 -->
+<div class="border rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="160">
+<button aria-expanded="false" class="faq-toggle w-full p-4 flex items-center justify-between text-left">
+<span class="font-semibold">How do I reserve a puppy?</span>
+<span aria-hidden="true" class="faq-icon"></span>
+</button>
+<div class="faq-content px-4 pb-4 text-gray-600">
+<p>Click “Inquire” on any listing or use the contact form — our team will guide you through deposit, contract, and delivery/pickup options.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA -->
+<section class="py-12">
+<div class="max-w-6xl mx-auto px-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl" data-aos="zoom-in">
+<div>
+<h3 class="text-xl font-bold">Ready to find your puppy?</h3>
+<p class="text-sm opacity-90">Browse available litters or contact our team for help finding the perfect match.</p>
+</div>
+<div>
+<a class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white text-amber-600 font-semibold shadow hover:scale-[1.02] transition" href="shop.html"><i data-feather="shopping-bag"></i> Shop Now</a>
+</div>
+</div>
+</section>
+<!-- Contact / Newsletter -->
+<section class="py-16 bg-gray-50" id="contact">
+<div class="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
+<div data-aos="fade-right">
+<h3 class="text-2xl font-bold mb-4">Contact Information</h3>
+<p class="text-gray-700 mb-4">hello@pawshop.com • (800) 555-PAWS • 123 Dog Lane, Beverly Hills, CA</p>
+<div class="flex gap-3">
+<a class="p-3 rounded-full bg-white shadow hover:scale-105" href="#"><i data-feather="facebook"></i></a>
+<a class="p-3 rounded-full bg-white shadow hover:scale-105" href="#"><i data-feather="instagram"></i></a>
+<a class="p-3 rounded-full bg-white shadow hover:scale-105" href="#"><i data-feather="twitter"></i></a>
+</div>
+</div>
+<div data-aos="fade-left">
+<h3 class="text-2xl font-bold mb-4">Join our newsletter</h3>
+<form class="flex gap-3">
+<input class="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-300" placeholder="Your email address" type="email"/>
+<button class="px-5 py-3 rounded-lg bg-amber-600 text-white font-semibold hover:bg-amber-700">Subscribe</button>
+</form>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-10">
+<div class="max-w-7xl mx-auto px-4 text-center">
+<p>© <span id="year"></span> PawShop — Premium bred puppies. All rights reserved.</p>
+</div>
+</footer>
+</main>
+<div class="modal-card bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl">
+<div class="fixed inset-0 hidden items-center justify-center z-60 modal-bg px-4 py-8" id="modal">
+<div class="modal-card bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl max-w-full">
+<button aria-label="Close" class="absolute top-5 right-5 z-50 p-2 rounded-full bg-white/90 shadow focus:outline-none" id="modalClose">
+<i class="w-5 h-5" data-feather="x"></i>
+</button>
+<div class="grid grid-cols-1 md:grid-cols-2">
+<div class="h-64 md:h-full">
+<img alt="Dog image" class="w-full h-full object-cover" id="modalImg" src=""/>
+</div>
+<div class="p-6">
+<h3 class="text-2xl font-bold mb-2" id="modalTitle"></h3>
+<div class="flex justify-between text-gray-600 mb-3">
+<div id="modalAge"></div>
+<div class="text-amber-600 font-semibold" id="modalPrice"></div>
+</div>
+<div class="text-sm text-gray-500 mb-4" id="modalLocation"></div>
+<p class="text-gray-700 mb-6" id="modalDesc"></p>
+<div class="flex gap-3">
+<button class="flex-1 rounded-lg py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold" id="reserve">Reserve Now</button>
+<button class="rounded-lg py-3 border border-gray-200" id="inquire">Inquire</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- JS -->
+<script>
+    // Init libs
+    AOS.init({ duration: 700, once: true });
+    feather.replace();
+
+    // Helpers
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+    // NAV behavior (glass -> solid on scroll)
+    const navWrap = $('#navWrap');
+    function handleNavScroll(){
+      if(window.scrollY > 40) navWrap.classList.add('nav-solid'); else navWrap.classList.remove('nav-solid');
+    }
+    handleNavScroll();
+    window.addEventListener('scroll', handleNavScroll);
+
+    // Mobile overlay
+    const mobileToggle = $('#mobileToggle');
+    const mobileOverlay = $('#mobileOverlay');
+    const mobilePanel = $('#mobilePanel');
+    const mobileClose = $('#mobileClose');
+
+    function openMobile(){
+      mobileOverlay.classList.remove('hidden');
+      setTimeout(()=> {
+        mobilePanel.style.transform = 'translateY(0) scale(1)';
+        mobilePanel.style.opacity = '1';
+      }, 20);
+      mobileToggle.setAttribute('aria-expanded','true');
+    }
+    function closeMobile(){
+      mobilePanel.style.transform = 'translateY(8px) scale(.98)';
+      mobilePanel.style.opacity = '0';
+      setTimeout(()=> mobileOverlay.classList.add('hidden'), 220);
+      mobileToggle.setAttribute('aria-expanded','false');
+    }
+    mobileToggle?.addEventListener('click', openMobile);
+    mobileClose?.addEventListener('click', closeMobile);
+    mobileOverlay?.addEventListener('click', (e) => { if(e.target === mobileOverlay) closeMobile(); });
+    document.addEventListener('keydown', (e) => { if(e.key === 'Escape'){ closeMobile(); closeModal(); } });
+
+    // Loader fade-out
+    const loader = $('#loader');
+    setTimeout(()=> {
+      loader.style.opacity = '0';
+      setTimeout(()=> loader.remove(), 500);
+    }, 1400);
+
+    // 3D Tilt behavior for cards
+    function bindTilt(card){
+      const inner = card.querySelector('.tilt-inner');
+      const rect = () => card.getBoundingClientRect();
+
+      function onMove(e){
+        const r = rect();
+        const cx = r.left + r.width/2;
+        const cy = r.top + r.height/2;
+        const x = (e.clientX - cx) / (r.width/2);
+        const y = (e.clientY - cy) / (r.height/2);
+        const rx = (-y * 6); // rotateX
+        const ry = (x * 8);  // rotateY
+        inner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) translateZ(12px)`;
+        card.classList.add('card-shadow-hover');
+      }
+      function onLeave(){
+        inner.style.transform = 'rotateX(0deg) rotateY(0deg) translateZ(0px)';
+        card.classList.remove('card-shadow-hover');
+      }
+
+      card.addEventListener('mousemove', onMove);
+      card.addEventListener('mouseleave', onLeave);
+      // touch fallback (no tilt on touch)
+    }
+
+    $$('.tilt-card').forEach(bindTilt);
+
+    // Modal (open/close)
+    const modal = $('#modal');
+    const modalCard = modal?.querySelector('.modal-card'); // not used but present for CSS
+    const modalCloser = $('#modalClose');
+    function openModal(data){
+      $('#modalImg').src = data.image;
+      $('#modalTitle').textContent = data.name;
+      $('#modalAge').textContent = data.age;
+      $('#modalPrice').textContent = data.price;
+      $('#modalLocation').textContent = data.location;
+      $('#modalDesc').textContent = data.description;
+
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      // animate inner
+      setTimeout(()=> {
+        modal.querySelector('.modal-card')?.classList.add('modal-open');
+      }, 10);
+    }
+    function closeModal(){
+      modal.querySelector('.modal-card')?.classList.remove('modal-open');
+      setTimeout(()=> {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }, 260);
+    }
+
+    // wire view buttons
+    $$('.view-details').forEach(btn=>{
+      btn.addEventListener('click', ()=> {
+        const card = btn.closest('[data-dog]');
+        if(!card) return;
+        let data;
+        try { data = JSON.parse(card.getAttribute('data-dog')); }
+        catch(err){ console.error('Invalid data-dog', err); return; }
+        openModal(data);
+      });
+    });
+    modalCloser?.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
+
+    $('#reserve')?.addEventListener('click', ()=> {
+      alert('Reservation noted — we will contact you shortly to complete the reservation.');
+      closeModal();
+    });
+
+    // Counters (smooth easing)
+    const counters = $$('.counter');
+    const counterObserver = new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+        if(!entry.isIntersecting) return;
+        const targetEl = entry.target;
+        const target = parseInt(targetEl.dataset.count || '0', 10);
+        let start = null;
+        const duration = 3000;
+        function step(ts){
+          if(!start) start = ts;
+          const t = Math.min((ts - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - t, 3);
+          // Show '+' only during animation for approximate values
+          if (t < 1) {
+            targetEl.textContent = Math.floor(eased * target) + (target >= 100 ? '+' : '');
+            requestAnimationFrame(step);
+          } else {
+            targetEl.textContent = target; // Show exact count at end
+          }
+        }
+        requestAnimationFrame(step);
+        counterObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.55 });
+    counters.forEach(c => counterObserver.observe(c));
+
+    // FAQ accordion (closed by default) with + -> x
+    const faqToggles = $$('.faq-toggle');
+    faqToggles.forEach(btn=>{
+      const iconSpan = btn.querySelector('.faq-icon');
+      iconSpan.innerHTML = feather.icons['plus'].toSvg();
+      const content = btn.nextElementSibling;
+      content.style.maxHeight = '0px';
+      content.classList.remove('faq-open');
+
+      btn.addEventListener('click', ()=>{
+        const isOpen = content.classList.contains('faq-open');
+        if(isOpen){
+          // close
+          content.style.maxHeight = 0;
+          content.classList.remove('faq-open');
+          btn.setAttribute('aria-expanded','false');
+          iconSpan.innerHTML = feather.icons['plus'].toSvg();
+        } else {
+          // open: compute natural height
+          content.style.maxHeight = content.scrollHeight + 'px';
+          content.classList.add('faq-open');
+          btn.setAttribute('aria-expanded','true');
+          iconSpan.innerHTML = feather.icons['x'].toSvg();
+        }
+        feather.replace(); // refresh icons (in case)
+      });
+
+      // on resize, keep open content height accurate
+      window.addEventListener('resize', ()=> {
+        if(content.classList.contains('faq-open')){
+          content.style.maxHeight = content.scrollHeight + 'px';
+        }
+      });
+    });
+
+    // Footer year
+    $('#year').textContent = new Date().getFullYear();
+
+    // Accessibility: focus rings
+    $$('.view-details').forEach(b => b.classList.add('focus:outline-none','focus:ring-2','focus:ring-amber-300'));
+    // Replace feather icons again after any dynamic svg injections
+    // feather.replace(); // Removed redundant call
+
+  </script>
+
+</body>
+</html>
